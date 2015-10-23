@@ -114,6 +114,8 @@ int get_extern(struct jit* jit, uint8_t* addr, int idx, int type)
     }
 }
 
+void lua_removef(lua_State *L, int index) { lua_remove(L, index); }
+
 static void* reserve_code(struct jit* jit, lua_State* L, size_t sz)
 {
     struct page* page;
@@ -176,7 +178,9 @@ static void* reserve_code(struct jit* jit, lua_State* L, size_t sz)
         ADDFUNC(jit->lua_dll, lua_pushnil);
         ADDFUNC(jit->lua_dll, lua_callk);
         ADDFUNC(jit->lua_dll, lua_settop);
-        ADDFUNC(jit->lua_dll, lua_remove);
+        lua_pushliteral(L, "lua_remove");
+        lua_pushcfunction(L, (lua_CFunction) lua_removef);
+        lua_rawset(L, -3);
 #undef ADDFUNC
 
         for (i = 0; extnames[i] != NULL; i++) {
